@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #   -*- coding: utf-8 -*-
 #
-#   Copyright (C) 2017 omega
+#   Copyright (C) 2017 Jicius
 # 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -16,31 +16,17 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import json
 
-import requests
+from flask import request, jsonify
 
-
-query_ip_area_api = "http://ip.taobao.com/service/getIpInfo.php?ip=%s"
+from fake_proxy import app
 
 
-def fetch_area(proxy):
-    """ 调用taobao接口返回ip详细信息 """
-    ip = re.search("(\d{1,3}.){3}\d{1,3}", proxy)
-    text, result = None, "{'ip': '%s'}" % ip
-    if not ip:
-        pass
-    else:
-        url = query_ip_area_api % ip.group()
-        text = requests.get(url).text
-    if not text:
-        pass
-    else:
-        result = text
-    return json.loads(result).get("data")
-
-
-if __name__ == '__main__':
-    proxy = "http://123.57.38.250:9898"
-    print fetch_area(proxy)
+@app.route('/')
+def index():
+    return jsonify(
+        dict(
+            remote_addr=request.remote_addr,
+            user_agent=str(request.user_agent)
+        )
+    )

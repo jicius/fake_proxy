@@ -16,19 +16,40 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from flask import Flask
-from flask_mongoengine import MongoEngine
 
-from config import config
+class Config:
+    mongodb_setting = {
+        'DB': 'arbitrary',
+        'HOST': '192.168.1.214',
+        'PORT': 27017
+    }
+
+    headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3",
+        "Connection": "keep-alive",
+        "Cache-Control": "max-age=0",
+        "Accept-Encoding": "gzip, deflate, sdch, br",
+        "Upgrade-Insecure-Requests": "1"
+    }
 
 
-app = Flask(__name__)
-config = config.get("default")
-
-app.config['MONGODB_SETTINGS'] = config.mongodb_setting
-db = MongoEngine(app)
+class DevelopmentConfig(Config):
+    pass
 
 
-from fake_proxy.main import views
+class TestingConfig(Config):
+    pass
 
 
+class ProductionConfig(Config):
+    pass
+
+
+config = {
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+    "production": ProductionConfig,
+
+    "default": DevelopmentConfig
+}
