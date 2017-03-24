@@ -16,19 +16,10 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from flask import Flask
-from flask_mongoengine import MongoEngine
+from fake_proxy import app
 
-from config import config
-
-
-app = Flask(__name__)
-config = config.get("default")
-
-app.config['MONGODB_SETTINGS'] = config.mongodb_setting
-db = MongoEngine(app)
+app.config.update(DEBUG=True)
 
 
-from fake_proxy.main import views
-
-
+if __name__ == '__main__':
+    app.run()

@@ -16,19 +16,16 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from flask import Flask
-from flask_mongoengine import MongoEngine
 
-from config import config
+import sys
 
 
-app = Flask(__name__)
-config = config.get("default")
+def get_cur_info():
+    """ 回显错误信息的路径, 文件名, 行号等信息
+    :return:
+    """
+    path = sys._getframe().f_code.co_filename
+    file = sys._getframe().f_code.co_name
+    line = sys._getframe().f_lineno
 
-app.config['MONGODB_SETTINGS'] = config.mongodb_setting
-db = MongoEngine(app)
-
-
-from fake_proxy.main import views
-
-
+    return path, file, line

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #   -*- coding: utf-8 -*-
 #
-#   Copyright (C) 2017 omega
+#   Copyright (C) 2017 Jicius
 # 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 
 import time
 import datetime
-import random
 import Queue
 from multiprocessing.dummy import Pool as ThreadPool
 import requests
