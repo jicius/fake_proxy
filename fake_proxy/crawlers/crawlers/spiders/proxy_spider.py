@@ -15,3 +15,25 @@
 # 
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import scrapy
+
+from fake_proxy.config import crawl_name
+from fake_proxy.utils.parse_cfg import parse_cfg
+
+
+class ProxySpider(scrapy.Spider):
+    name = crawl_name
+
+    def start_requests(self):
+        cfg = parse_cfg()
+        if cfg.has_key("websites"):
+            urls = cfg.get("websites")
+        else:
+            raise Exception("Error, website.yml websites not exist")
+        for url in urls:
+            yield scrapy.Request(url=url, callback=self.parse)
+
+    def parse(self, response):
+        body = response.body
+        

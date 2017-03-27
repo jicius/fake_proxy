@@ -16,36 +16,26 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import json
+import os
 
-import requests
+import yaml
+
+from fake_proxy.config import project_dir_path
+from fake_proxy.config import project_cfg_file
 
 
-query_ip_area_api = "http://ip.taobao.com/service/getIpInfo.php?ip=%s"
-
-
-def ip_info(proxy):
-    """ 获取ip详细信息
-    
-    :param proxy: 代理ip
-    :return:
-    """
-    ip = re.search("(\d{1,3}.){3}\d{1,3}", proxy)
-    text, result = None, "{'ip': '%s'}" % ip
-    if not ip:
-        pass
+def parse_cfg():
+    filename = project_dir_path + '/' + project_cfg_file
+    if not os.path.exists(filename):
+        raise Exception("Error, website.yml not exist")
     else:
-        url = query_ip_area_api % ip.group()
-        text = requests.get(url).text
-    if not text:
-        pass
-    else:
-        result = text
-    return json.loads(result).get("data")
+        f = open(filename)
+        try:
+            obj = yaml.load(f)
+        except Exception as e:
+            obj = e
+        return obj
 
 
 if __name__ == '__main__':
-    proxy = "http://123.57.38.250:9898"
-    info = ip_info(proxy)
-    print json.dumps(info, indent=8).decode("unicode_escape")
+    print parse_cfg()

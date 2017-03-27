@@ -19,51 +19,51 @@
 import time
 import datetime
 import Queue
-from multiprocessing.dummy import Pool as ThreadPool
+import sys
+
 import requests
 
-from omega.config import config
-from omega.models import HttpProxy
+from fake_proxy.config import config
+from fake_proxy.models import HttpProxy
 
 queue = Queue.Queue()
 config = config.get("default")
 
 
 class FakeHttpProxy(object):
-    def __init__(self, domains=None, pool=queue, interval=1*60):
-        self.domains = domains
+    def __init__(self, domain=None, pool=queue, interval=1*60):
+        self.domain = domain
         self.proxies_pool = pool
         self.interval = interval            # 刷新pool时间间隔, 默认1*60分钟
+        self.meta = dict()
+        self.init_pool()
 
     def init_pool(self):
-        if not domains:
-            items = self._query(active=0)
-        else:
-            items = self._query(active=1)
+        """ 初始化代理池 """
+        self._update()
+        items = self._query(active=1)
+        self.meta["proxies"] = list()
         for it in items:
-            proxy = {"%s" % it.protocol: "%s://%s:%s" % (it.protocol, it.ip, str(it.port))}
-            self.proxies_pool.put(proxy)
+            self.meta["proxies"].append(it)
+            self.proxies_pool.put(self._proxy(it.protocol, it.ip, it.port))
 
-    def _validate(self, thread_pool_size=4):
-        if not self.domains:
-            pass                 # 默认对所有domains可用
-        else:
-            pool = ThreadPool(thread_pool_size)
-            pool.map(self._update, self.domains)
-            pool.close()
-            pool.join()
+    def _validate(self, proxy):
+        """ 代理池代理有效性检测 """
+        return requests.get(self.domain, proxies=proxy).status_code == 200
 
-    def _update(self, url):
-        proxies = self._query()
+    def _update(self):
+        """ 更新代理状态 """
+        active = 1 if self.domain else 0
+        proxies = self._query(active=active)
         for it in proxies:
-            proxy = {"%s" % it.protocol: "%s://%s:%s" % (it.protocol, it.ip, str(it.port))}
-            res = requests.get(url, headers=config.headers, proxies=proxy)
-            active, ptype, survival = 0, "anonymous", 0
+            proxy = self._proxy(it.protocol, it.ip, it.port)
+            res = requests.get(self.domain, headers=config.headers, proxies=proxy)
+            active, ptype, survival = 0, "transparent", 0
             if not res.is_redirect:
                 active = 1                  # 设为存活状态
                 survival = (int(time.time())-it.created) / 60
             else:
-                ptype = "transparent"       # 代理修改为透明
+                ptype = "nothing"           # 修改代理代理类型为无效代理
             it.update(
                 active=active,
                 ptype=ptype,
@@ -73,69 +73,76 @@ class FakeHttpProxy(object):
             )
 
     def _query(self, active=0):
+        """ 加载数据库中的代理ip
+    
+        :param active: active为0表示代理无效，1表示代理有效
+        :return: 
+        """
         items = HttpProxy.objects(active=active).all()
         for it in items:
             yield it
 
-    def loop_reload(self):
-        """ 根据interval将代理加载到队列中 """
+    def refresh(self):
+        """ 定期刷新池子中的代理 """
         pass
 
-    def do_get(self, type="random"):
+    def do_get(self, proxy_type=None):
+        """ 代理出队列 
+        
+        默认按照队列特性代理random，支持type筛选
+        """
         while not self.proxies_pool.empty():
             proxy = self.proxies_pool.get()
+            if not proxy_type:
+                pass
+            elif self.do_filter(proxy=proxy, proxy_type=proxy_type):
+                pass
+            else:
+                self.do_put(proxy, check_enable=False)
+                return
             self.do_put(proxy, check_enable=False)
             return proxy
 
     def do_put(self, proxy, check_enable=False):
-        """ 代理如队列
+        """ 代理入队列
 
         如果check_enable为True, 则每次入队列前, 检测有效性, 无效出队列
         如果为False则只做加载操作, 库中ip状态由最近一次更新决定
         """
         if not check_enable:
-            self.init_pool()
+            self.proxies_pool.put(proxy)
         else:
-            # TODO 及时更新
-            pass
+            if self._validate(proxy):
+                self.proxies_pool.put(proxy)
+
+    def do_filter(self, proxy, proxy_type):
+        for each_proxy in self.meta["proxies"]:
+            tmp_proxy = self._proxy(each_proxy.protocol, each_proxy.ip, each_proxy.port)
+            if tmp_proxy == proxy and each_proxy.ptype == proxy_type:
+                return True
+
+    def _proxy(self, protocol, ip, port):
+        """  格式化返回代理ip """
+        return {"%s" % protocol: "%s://%s:%s" % (protocol, ip, str(port))}
 
     @property
     def transparent(self):
-        """ 透明代理
-
-        透明代理可以直接'隐藏'你的代理, 其中REMOTE_ADDR=Proxy IP, HTTP_VIA=Proxy Ip,
-        但是可以通过HTTP_X_FORWARDED_FOR来追查
-        """
-        return self.do_get(type="transparent")
+        """ 返回透明代理 """
+        return self.do_get(proxy_type=sys._getframe().f_code.co_name)
 
     @property
     def anonymous(self):
-        """ 匿名代理
-
-        使用匿名代理, 别人知道你使用了代理, 但是不知道你是谁, HTTP_X_FORWARDED_FOR指向proxy_ip
-        """
-        return self.do_get(type="anonymous")
-
-    @property
-    def distorting(self):
-        """ 混淆代理
-
-        混淆代理比匿名代理高明, 别人知道你在用代理, 但是会得到一个假的ip, HTTP_X_FORWARDED_FOR指向random_ip
-        """
-        return self.do_get(type="distorting")
+        """ 返回匿名代理 """
+        return self.do_get(proxy_type=sys._getframe().f_code.co_name)
 
     @property
     def elite(self):
-        """ 高匿代理
-
-        高匿代理无法让人发现你在用代理, REMOTE_ADDR=Proxy IP, REMOTE_ADDR=Proxy IP,
-         HTTP_X_FORWARDED_FOR=not determined
-        """
-        return self.do_get(type="elite")
+        """ 返回高匿代理 """
+        return self.do_get(proxy_type=sys._getframe().f_code.co_name)
 
     @property
     def random(self):
-        """ 随机代理 """
+        """ 返回随机代理 """
         return self.do_get()
 
 
@@ -143,7 +150,9 @@ class FakeHttpProxy(object):
 # HttpProxy = FakeHttpProxy
 
 if __name__ == '__main__':
-    domains = config.proxy_domains
 
-    hp_cls = FakeHttpProxy(domains=config.proxy_domains)
-    hp_cls._validate()
+    hp_cls = FakeHttpProxy(domain=config.domain)
+    print hp_cls.random
+    print hp_cls.transparent
+    print hp_cls.anonymous
+    print hp_cls.elite

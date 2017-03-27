@@ -31,34 +31,32 @@ ua_cls = UserAgent()
 config = config.get("default")
 
 
-def ip_type(proxy, headers=config.headers, start_time=time.time()):
+def ip_type(proxy, headers=config.headers):
     """ 确定代理ip的类型, 并记录响应时间
+    
     :param proxy: 代理ip
     :param headers: 默认headers
     :return:
     """
     if not isinstance(proxy, dict):
-        raise Exception("Error, <%s> argument error.")
+        raise Exception("Error, argument error.")
+
+    start_time = time.time()
     proxy_ip = re.search("(\d{1,3}.){3}\d{1,3}", proxy.values()[0]).group()
     headers["User-Agent"] = ua_cls.random
     headers["X_FORWARDED_FOR"] = proxy_ip
     res = requests.get(url=url, headers=headers, proxies=proxy)
     proxy_cst = "%.3f" % (time.time() - start_time)
-    http_via = res.headers.get("Via", "").strip()                               # HTTP_VIA
-    remote_addr = json.loads(res.text).get("origin", "").split(',')[-1].strip() # REMOTE_ADDR, record the last ip
-    http_x_forwarded_for = json.loads(res.text).get("origin", "").strip()       # HTTP_X_FORWARDED_FOR, record all ips
-    orig_addr = get_public_ip().strip()                                         # real ip
-
-    print remote_addr
-    print http_x_forwarded_for
-    print orig_addr
+    http_via = res.headers.get("Via", "").strip()                                # HTTP_VIA
+    remote_addr = json.loads(res.text).get("origin", "").split(',')[-1].strip()  # REMOTE_ADDR, record the last ip
+    http_x_forwarded_for = json.loads(res.text).get("origin", "").strip()        # HTTP_X_FORWARDED_FOR, record all ips
+    orig_addr = get_public_ip().strip()                                          # real ip
 
     # 代理类型说明:
     # transparent(透明代理), anonymous(匿名代理), elite(高匿代理), nothing(无代理)
-
-    if remote_addr == proxy_ip and http_via == proxy_ip and http_x_forwarded_for == orig_addr:
+    if remote_addr == proxy_ip and http_via != "" and orig_addr in http_x_forwarded_for:
         proxy_type = "transparent"
-    elif remote_addr == proxy_ip and http_via == proxy_ip and http_x_forwarded_for == proxy_ip:
+    elif remote_addr == proxy_ip and http_via != "" and http_x_forwarded_for == proxy_ip:
         proxy_type = "anonymous"
     elif remote_addr == proxy_ip and http_via == "" and http_x_forwarded_for == "":
         proxy_type = "elite"
@@ -67,9 +65,16 @@ def ip_type(proxy, headers=config.headers, start_time=time.time()):
 
     return proxy_type, proxy_cst
 
+
 if __name__ == '__main__':
-    proxy = {
-        "http": "http://123.57.38.250:9898"
-    }
-    print ip_type(proxy)
+    proxies = [
+        {
+            "http": "http://54.213.223.218:8083"
+        },
+        {
+            "http": "http://123.57.38.250:9898"
+        }
+    ]
+    for proxy in proxies:
+        print ip_type(proxy)
 

@@ -16,36 +16,13 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import json
 
-import requests
+import os
 
+from fake_proxy.config import crawl_name
 
-query_ip_area_api = "http://ip.taobao.com/service/getIpInfo.php?ip=%s"
-
-
-def ip_info(proxy):
-    """ 获取ip详细信息
-    
-    :param proxy: 代理ip
-    :return:
-    """
-    ip = re.search("(\d{1,3}.){3}\d{1,3}", proxy)
-    text, result = None, "{'ip': '%s'}" % ip
-    if not ip:
-        pass
-    else:
-        url = query_ip_area_api % ip.group()
-        text = requests.get(url).text
-    if not text:
-        pass
-    else:
-        result = text
-    return json.loads(result).get("data")
+cmd = "scrapy crawl %s" % crawl_name
 
 
 if __name__ == '__main__':
-    proxy = "http://123.57.38.250:9898"
-    info = ip_info(proxy)
-    print json.dumps(info, indent=8).decode("unicode_escape")
+    os.system(cmd)
