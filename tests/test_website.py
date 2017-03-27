@@ -16,7 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import requests
+import cookielib
+import urllib2
 
 url = 'http://www.kuaidaili.com/'
 
@@ -32,4 +33,14 @@ headers = {
 }
 
 
-print requests.get(url, headers=headers).text
+def main():
+    cookie = cookielib.CookieJar()
+    handle = urllib2.HTTPCookieProcessor(cookie)
+    opener = urllib2.build_opener(handle)
+    res = opener.open(url)
+    for it in cookie:
+        print it.name, it.values
+
+
+if __name__ == '__main__':
+    main()

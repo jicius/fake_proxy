@@ -36,4 +36,4 @@ class ProxySpider(scrapy.Spider):
 
     def parse(self, response):
         body = response.body
-        
+        print
