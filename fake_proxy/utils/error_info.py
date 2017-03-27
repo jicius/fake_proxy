@@ -20,8 +20,9 @@
 import sys
 
 
-def get_cur_info():
+def error():
     """ 回显错误信息的路径, 文件名, 行号等信息
+    
     :return:
     """
     path = sys._getframe().f_code.co_filename
@@ -29,3 +30,7 @@ def get_cur_info():
     line = sys._getframe().f_lineno
 
     return path, file, line
+
+
+if __name__ == '__main__':
+    print error()

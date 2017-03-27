@@ -16,36 +16,20 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import json
-
 import requests
 
+url = 'http://www.kuaidaili.com/'
 
-query_ip_area_api = "http://ip.taobao.com/service/getIpInfo.php?ip=%s"
-
-
-def ip_info(proxy):
-    """ 获取ip详细信息
-    
-    :param proxy: 代理ip
-    :return:
-    """
-    ip = re.search("(\d{1,3}.){3}\d{1,3}", proxy)
-    text, result = None, "{'ip': '%s'}" % ip
-    if not ip:
-        pass
-    else:
-        url = query_ip_area_api % ip.group()
-        text = requests.get(url).text
-    if not text:
-        pass
-    else:
-        result = text
-    return json.loads(result).get("data")
+headers = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, sdch",
+    "Accept-Language": "en-US,en;q=0.8,zh-CN;q=0.6,zh;q=0.4",
+    "Cache-Control": "max-age=0",
+    "Connection": "keep-alive",
+    "Host": "www.kuaidaili.com",
+    "Upgrade-Insecure-Requests": "1",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
+}
 
 
-if __name__ == '__main__':
-    proxy = "http://123.57.38.250:9898"
-    info = ip_info(proxy)
-    print json.dumps(info, indent=8).decode("unicode_escape")
+print requests.get(url, headers=headers).text

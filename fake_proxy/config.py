@@ -16,14 +16,16 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
+crawl_name = "proxy_spider"
+project_name = "fake_proxy"
+project_cfg_file = "website.yml"
+project_dir_path = "/Users/Jicius/Git/fake_proxy"
+project_pkg_path = os.path.abspath(os.path.dirname(__file__))
+
 
 class Config:
-    mongodb_setting = {
-        'DB': 'arbitrary',
-        'HOST': '192.168.1.214',
-        'PORT': 27017
-    }
-
     headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3",
@@ -35,7 +37,13 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    pass
+    mongodb_setting = {
+        'DB': 'arbitrary',
+        'HOST': '192.168.1.214',
+        'PORT': 27017
+    }
+
+    domain = "https://www.baidu.com"
 
 
 class TestingConfig(Config):
