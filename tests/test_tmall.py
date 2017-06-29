@@ -16,30 +16,21 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
+import time
 
-from elasticsearch import Elasticsearch
+import json
+import requests
 
-# 连接elasticsearch, 默认9200
-es = Elasticsearch()
 
-doc = {
-    'author': 'jicius',
-    'text': 'Es',
-    'timestamp': datetime.now()
-}
-# 创建索引, 如果索引存在, 返回400
-res = es.index(index="test-index", doc_type='tweet', id=1, body=doc)
-print(res['created'])
+def fetch(url):
+    body = requests.get(url).text
+    item = json.loads(body)
+    print time.ctime(), item.get('total_results')
 
-# get方式取数据
-res = es.get(index="test-index", doc_type='tweet', id=1)
-print(res['_source'])
 
-es.indices.refresh(index="test-index")
+if __name__ == '__main__':
+    url = 'http://s.m.tmall.com/m/search_items.htm?page_size=100&page_no=1&cat=55398003&sort=d'
+    for _ in range(1000):
+        fetch(url=url)
+        time.sleep(10)
 
-# search方式取数据
-res = es.search(index="test-index", body={"query": {"march_al": {}}})
-print("Got %d Hits:" % res['hits']['total'])
-for hit in res['hits']['hits']:
-    print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
