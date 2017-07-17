@@ -16,17 +16,17 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from flask import Flask
-from flask_mongoengine import MongoEngine
-
-from config import config
-
-app = Flask(__name__)
-config = config.get("default")
-
-app.config['MONGODB_SETTINGS'] = config.mongodb_setting
-db = MongoEngine(app)
-
-from fake_proxy.wsig import views
+import rollbar
 
 
+token = "3723a904a3a4452fa2acf076bc971aa5"
+
+rollbar.init(token)
+
+for _ in range(10):
+    try:
+        raise Exception("2")
+    except Exception as e:
+        rollbar.report_message(e, level="error")
+
+    # rollbar.report_message(u"失败", level="info")

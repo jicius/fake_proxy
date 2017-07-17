@@ -35,29 +35,59 @@ class Config:
         "Upgrade-Insecure-Requests": "1"
     }
 
+    def __ini__(self):
+        pass
+
 
 class DevelopmentConfig(Config):
     mongodb_setting = {
         'DB': 'arbitrary',
         'HOST': '192.168.1.214',
-        'PORT': 27017
+        'PORT': 37019,
+        'USERNAME': 'guest',
+        'PASSWORD': '8df12346609643d6a595faeae99e6ce0'
+    }
+
+    sqlite_setting = {
+
     }
 
     domain = "https://www.baidu.com"
 
 
 class TestingConfig(Config):
-    pass
+    mongodb_setting = {
+        'DB': 'arbitrary',
+        'HOST': '192.168.1.214',
+        'PORT': 37019,
+        'USERNAME': 'guest',
+        'PASSWORD': '8df12346609643d6a595faeae99e6ce0'
+    }
+    sqlite_setting = {
+
+    }
 
 
 class ProductionConfig(Config):
-    pass
+    mongodb_setting = {
+        'DB': 'arbitrary',
+        'HOST': '127.0.0.1',
+        'PORT': 37019,
+        'USERNAME': 'guest',
+        'PASSWORD': '8df12346609643d6a595faeae99e6ce0'
+    }
+
+    sqlite_setting = {
+
+    }
 
 
-config = {
+config_setting = {
     "development": DevelopmentConfig,
     "testing": TestingConfig,
     "production": ProductionConfig,
 
     "default": DevelopmentConfig
 }
+
+config = config_setting.get(os.getenv('ENVIRONMENT'), DevelopmentConfig)
