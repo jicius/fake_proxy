@@ -16,6 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
 
 class Student:
     """ Student class
@@ -26,5 +28,18 @@ class Student:
         self.sex = sex
         self.age = age
 
-print Student(name='Jicius', sex=0, age=25).__dict__
+class Json2Dict:
+    """ json str to dic
 
+    """
+    def __init__(self, json_str):
+        self.__dict__ = json_str
+
+
+#########################################################
+
+print Student(name=None, sex=None, age=None).__dict__
+
+print json.dumps(False)  # True->true, False->false, None->null
+
+print json.loads('{"name": "Jicius", "sex": 0, "age": 25}', object_hook=Json2Dict).name
