@@ -16,13 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import inspect
-
-from fake_proxy.utils.error_info import error
+import requests
 
 
-if __name__ == '__main__':
-    print error()
-    stacks = inspect.stack()[0]
-    for sk in stacks:
-        print sk
+print requests.get("http://weixin.sogou.com/weixin", params={"type": 1, "query": "金融"}).text
+
