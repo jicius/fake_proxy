@@ -89,5 +89,8 @@ config_setting = {
 
     "default": DevelopmentConfig
 }
+<<<<<<< HEAD
 
 config = config_setting.get(os.getenv('ENVIRONMENT'), DevelopmentConfig)
+=======
+>>>>>>> 5775b5c346517958bde4c2a6d3ddce320ab9a937

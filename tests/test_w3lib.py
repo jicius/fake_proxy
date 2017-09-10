@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#   -*- coding: utf-8 -*-
+#   -*- coding: UTF-8-8 -*-
 #
 #   Copyright (C) 2017 Jicius
 # 
@@ -16,23 +16,34 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import scrapy
+"""
+model: w3lib
 
-from fake_proxy.config import crawl_name
-from fake_proxy.utils.parse_cfg import parse_cfg
+feature:
+    * remove comments, or tags from HTML snippets
+    * extract base url from HTML snippets
+    * translate entites on HTML strings
+    * convert raw HTTP headers to dicts and vice-versa 
+    * construct HTTP auth header
+    * converting HTML pages to unicode
+    * sanitize urls (like browsers do)
+    * extract arguments from urls
+
+"""
+
+import w3lib.html
+
+ss = "Price: &pound;100"
+print w3lib.html.replace_entities(ss)
 
 
-class ProxySpider(scrapy.Spider):
-    name = crawl_name
+import w3lib.http
 
-    def start_requests(self):
-        cfg = parse_cfg()
-        if cfg.has_key("websites"):
-            urls = cfg.get("websites")
-        else:
-            raise Exception("Error, website.yml websites not exist")
-        for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
+username, password = ("root", "123456")
+print w3lib.http.basic_auth_header(username, password)
 
-    def parse(self, response):
-        body = response.body
+raw_headers = """
+    Host: www.gsxt.gov.cn
+    Connection: keep-alive
+"""
+print w3lib.http.headers_raw_to_dict(raw_headers)

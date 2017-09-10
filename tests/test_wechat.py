@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+<<<<<<< HEAD
 
 import requests
 
@@ -45,3 +46,10 @@ ss = u'''
 '''.encode(encoding=encoding)
 
 print ss
+=======
+import requests
+
+
+print requests.get("http://weixin.sogou.com/weixin", params={"type": 1, "query": "金融"}).text
+
+>>>>>>> 5775b5c346517958bde4c2a6d3ddce320ab9a937
